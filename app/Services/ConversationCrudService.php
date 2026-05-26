@@ -24,4 +24,13 @@ class ConversationCrudService
     {
         return (bool) $conversation->delete();
     }
+
+    public function update(Conversation $conversation, ?string $title): Conversation
+    {
+        $conversation->update([
+            'title' => $title,
+        ]);
+
+        return $conversation;
+    }
 }
