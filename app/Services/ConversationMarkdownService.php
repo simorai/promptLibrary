@@ -22,6 +22,16 @@ class ConversationMarkdownService
             $lines[] = '_'.$message->created_at?->toDateTimeString().'_';
             $lines[] = '';
             $lines[] = $message->content;
+
+            if ($message->comments?->isNotEmpty()) {
+                $lines[] = '';
+                $lines[] = '### Comments';
+
+                foreach ($message->comments as $comment) {
+                    $lines[] = '- '.$comment->text;
+                }
+            }
+
             $lines[] = '';
         }
 

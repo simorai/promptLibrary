@@ -16,7 +16,9 @@ class ConversationExportService
         abort_if($conversation->messages()->count() === 0, 422, 'Cannot export an empty conversation.');
 
         $filename = $this->buildFilename($conversation);
-        $markdown = $this->conversationMarkdownService->toMarkdown($conversation->load('messages'));
+        $markdown = $this->conversationMarkdownService->toMarkdown(
+            $conversation->load(['messages.attachments', 'messages.comments']),
+        );
 
         if ($format === 'markdown') {
             $path = storage_path("app/private/exports/{$filename}.md");

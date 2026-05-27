@@ -8,7 +8,7 @@ class ConversationReadService
 {
     public function loadForShow(Conversation $conversation): Conversation
     {
-        return $conversation->load('messages')->loadCount('messages');
+        return $conversation->load(['messages.attachments', 'messages.comments'])->loadCount('messages');
     }
 
     public function loadWithMessageCount(Conversation $conversation): Conversation
