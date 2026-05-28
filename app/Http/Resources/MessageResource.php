@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources;
 
+use App\Http\Resources\CommentResource;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -23,6 +24,7 @@ class MessageResource extends JsonResource
             'status' => $this->status,
             'error_message' => $this->error_message,
             'attachments' => MessageAttachmentResource::collection($this->whenLoaded('attachments')),
+            'comments' => CommentResource::collection($this->whenLoaded('comments')),
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
         ];
