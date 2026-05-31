@@ -49,3 +49,15 @@ function something()
 {
     // ..
 }
+
+function authHomeRedirect(): string
+{
+    return (string) config('fortify.home');
+}
+
+function authHomeRedirectWithQuery(string $query = ''): string
+{
+    $home = authHomeRedirect();
+
+    return $query === '' ? $home : $home.'?'.$query;
+}
