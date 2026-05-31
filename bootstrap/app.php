@@ -8,8 +8,49 @@ use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets;
-use PDOException;
-use Throwable;
+
+/**
+ * Match database/network outage errors so we can render a graceful 503 page.
+ */
+if (! function_exists('isDatabaseConnectivityException')) {
+    function isDatabaseConnectivityException(\Throwable $exception): bool
+    {
+        if ($exception instanceof \PDOException) {
+            return true;
+        }
+
+        if (! $exception instanceof QueryException) {
+            return false;
+        }
+
+        $message = strtolower($exception->getMessage());
+
+        $signals = [
+            'connection refused',
+            'connection timed out',
+            'could not find driver',
+            'failed to open stream',
+            'getaddrinfo',
+            'host is down',
+            'is the server running',
+            'network is unreachable',
+            'no such file or directory',
+            'server has gone away',
+            'sqlstate[080',
+            'sqlstate[08s',
+            'too many connections',
+            'unable to connect',
+        ];
+
+        foreach ($signals as $signal) {
+            if (str_contains($message, $signal)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+}
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -33,7 +74,7 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
-        $exceptions->render(function (Throwable $exception) {
+        $exceptions->render(function (\Throwable $exception) {
             if (! isDatabaseConnectivityException($exception)) {
                 return null;
             }
@@ -41,44 +82,3 @@ return Application::configure(basePath: dirname(__DIR__))
             return response()->view('errors.503', status: 503);
         });
     })->create();
-
-/**
- * Match database/network outage errors so we can render a graceful 503 page.
- */
-function isDatabaseConnectivityException(Throwable $exception): bool
-{
-    if ($exception instanceof PDOException) {
-        return true;
-    }
-
-    if (! $exception instanceof QueryException) {
-        return false;
-    }
-
-    $message = strtolower($exception->getMessage());
-
-    $signals = [
-        'connection refused',
-        'connection timed out',
-        'could not find driver',
-        'failed to open stream',
-        'getaddrinfo',
-        'host is down',
-        'is the server running',
-        'network is unreachable',
-        'no such file or directory',
-        'server has gone away',
-        'sqlstate[080',
-        'sqlstate[08s',
-        'too many connections',
-        'unable to connect',
-    ];
-
-    foreach ($signals as $signal) {
-        if (str_contains($message, $signal)) {
-            return true;
-        }
-    }
-
-    return false;
-}
